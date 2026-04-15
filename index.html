@@ -191,48 +191,6 @@ body::after {
 #staff-wrap.wrong   { background: #fff0f0; border-color: var(--red); }
 #staff-wrap.hidden-note { opacity: 0; }
 
-/* DEBUG PANEL */
-#debug-panel {
-  width: 100%;
-  background: var(--cream2);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  font-size: 0.68rem;
-  color: var(--muted);
-}
-#debug-panel h3 {
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-  color: var(--gold);
-}
-#debug-averages {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 8px;
-}
-.debug-note {
-  background: #fff;
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 6px 8px;
-  text-align: center;
-  font-family: 'IBM Plex Mono', monospace;
-}
-.debug-note strong {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--ink);
-}
-.debug-note .avg {
-  font-size: 0.9rem;
-  color: var(--green);
-}
-.debug-note .avg.slow { color: var(--red); }
-
 /* MIC & FEEDBACK */
 .status-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .mic-dot {
@@ -357,12 +315,6 @@ body::after {
       <div id="staff-svg"></div>
     </div>
 
-    <!-- DEBUG PANEL -->
-    <div id="debug-panel">
-      <h3>Debug: Average Times (last 4)</h3>
-      <div id="debug-averages"></div>
-    </div>
-
     <div class="status-row">
       <div class="mic-dot" id="mic-dot"></div>
       <span id="status-text">Starting…</span>
@@ -385,7 +337,12 @@ body::after {
     <div class="end-sub" id="results-sub"></div>
     <table class="results-table" id="results-table">
       <thead>
-        <tr><th>Note</th><th>Times Shown</th><th>Avg Time (last 4)</th></tr>
+        <tr>
+          <th>Note</th>
+          <th>Times Shown</th>
+          <th>Avg Time (last 4)</th>
+          <th>Accuracy</th>
+        </tr>
       </thead>
       <tbody id="results-body"></tbody>
     </table>
@@ -486,14 +443,15 @@ function freqToMidi(freq, centsWindow = 80) {
 let currentClef = 'treble';
 let currentAcc = 'sharp';
 let notePool = [];
-let noteStats = [];
-let introducedIndices = [];   // currently active notes (in order of introduction)
+let noteStats = [];           // { timings: [], showCount: number, correctCount: number }
+let introducedIndices = [];
 let introOrder = [];
 let introPtr = 0;
 let currentNoteIdx = -1;
 let noteShownAt = 0;
 let waitingForCorrect = false;
 let newestNoteIdx = -1;
+let showCountsForRetirement = [];
 
 let listening = false;
 let audioCtx = null;
@@ -511,38 +469,6 @@ const CLARITY_THRESHOLD = 0.82;
 const MASTERY_THRESHOLD = 1.5;
 const MIN_SHOWS = 4;
 const NOTE_GAP_MS = 250;
-
-// New: Track how many times each note has been shown (for retirement logic)
-let showCountsForRetirement = [];
-
-// Debug functions
-function buildDebugPanel() {
-  const container = document.getElementById('debug-averages');
-  container.innerHTML = '';
-  notePool.forEach((note, i) => {
-    const div = document.createElement('div');
-    div.className = 'debug-note';
-    div.id = `debug-note-${i}`;
-    div.innerHTML = `<strong>${note.label}</strong><span class="avg">—</span>`;
-    container.appendChild(div);
-  });
-}
-
-function updateDebugPanel() {
-  notePool.forEach((_, i) => {
-    const el = document.getElementById(`debug-note-${i}`);
-    if (!el) return;
-    const avg = rollingAvg(i);
-    const avgSpan = el.querySelector('.avg');
-    if (avg === null) {
-      avgSpan.textContent = '—';
-      avgSpan.classList.remove('slow');
-    } else {
-      avgSpan.textContent = avg.toFixed(2) + 's';
-      avgSpan.classList.toggle('slow', avg > 1.5);
-    }
-  });
-}
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -570,6 +496,12 @@ function rollingAvg(idx) {
   return last4.reduce((a, b) => a + b, 0) / 4;
 }
 
+function getAccuracy(idx) {
+  const stats = noteStats[idx];
+  if (stats.showCount === 0) return 0;
+  return Math.round((stats.correctCount / stats.showCount) * 100);
+}
+
 function isMastered(idx) {
   const avg = rollingAvg(idx);
   return avg !== null && avg <= MASTERY_THRESHOLD;
@@ -579,17 +511,14 @@ function allIntroducedMastered() {
   return introducedIndices.every(i => isMastered(i));
 }
 
-// NEW: Determine which notes are still active (not retired)
 function getActiveNotes() {
   const active = [...introducedIndices];
   const numIntroduced = introducedIndices.length;
 
-  // Retire oldest notes based on your rule
   if (numIntroduced >= 5) {
-    const notesToRetire = numIntroduced - 4; // retire 1st when 5th is active, etc.
+    const notesToRetire = numIntroduced - 4;
     for (let i = 0; i < notesToRetire; i++) {
       const oldestIdx = introducedIndices[i];
-      // Only retire if the corresponding newer note has been shown at least 2 times
       const newerNote = introducedIndices[4 + i];
       if (showCountsForRetirement[newerNote] >= 2) {
         const pos = active.indexOf(oldestIdx);
@@ -602,8 +531,7 @@ function getActiveNotes() {
 
 function pickNextNote() {
   const active = getActiveNotes();
-
-  if (active.length === 0) return introducedIndices[introducedIndices.length - 1]; // safety
+  if (active.length === 0) return introducedIndices[introducedIndices.length - 1];
 
   const newest = newestNoteIdx;
 
@@ -639,7 +567,7 @@ window.startLevel = async function(clef, acc) {
   currentClef = clef;
   currentAcc = acc;
   notePool = NOTE_POOLS[clef][acc].slice();
-  noteStats = notePool.map(() => ({ timings: [], showCount: 0 }));
+  noteStats = notePool.map(() => ({ timings: [], showCount: 0, correctCount: 0 }));
   showCountsForRetirement = new Array(notePool.length).fill(0);
   introducedIndices = [];
   introOrder = shuffle([...Array(notePool.length).keys()]);
@@ -659,7 +587,6 @@ window.startLevel = async function(clef, acc) {
   document.getElementById('staff-wrap').classList.remove('correct','wrong','hidden-note');
 
   showScreen('screen-game');
-  buildDebugPanel();
   await initAudio();
   if (!listening) return;
 
@@ -701,12 +628,11 @@ function onCorrect() {
   const idx = currentNoteIdx;
   noteStats[idx].timings.push(elapsed);
   noteStats[idx].showCount++;
-  showCountsForRetirement[idx]++;     // Track for retirement
+  noteStats[idx].correctCount++;           // ← Accuracy tracking
+  showCountsForRetirement[idx]++;
 
   waitingForCorrect = false;
   flash('Correct!', 'correct');
-
-  updateDebugPanel();
 
   if (introducedIndices.length === notePool.length && allIntroducedMastered()) {
     setTimeout(endLevel, 800);
@@ -725,6 +651,8 @@ function onCorrect() {
 }
 
 function onWrong() {
+  const idx = currentNoteIdx;
+  noteStats[idx].showCount++;              // Count wrong attempts for accuracy
   flash('Wrong', 'wrong');
   cooldown = true;
   setTimeout(() => { cooldown = false; lastMidi = -1; stableCount = 0; }, 900);
@@ -746,17 +674,20 @@ function endLevel() {
   const accLabel = currentAcc === 'sharp' ? 'Sharps' : 'Flats';
   const clefLabel = currentClef === 'treble' ? 'Treble Clef' : 'Bass Clef';
   document.getElementById('results-title').textContent = `${clefLabel} ${accLabel} — Complete`;
-  document.getElementById('results-sub').textContent = 'All 9 notes mastered. Here are your average response times:';
+  document.getElementById('results-sub').textContent = 'All 9 notes mastered. Here are your results:';
 
   const tbody = document.getElementById('results-body');
   tbody.innerHTML = '';
 
   notePool.forEach((n, i) => {
     const avg = rollingAvg(i);
+    const accuracy = getAccuracy(i);
+
     const tr = document.createElement('tr');
     const tdNote = document.createElement('td');
     const tdShows = document.createElement('td');
     const tdAvg = document.createElement('td');
+    const tdAcc = document.createElement('td');
 
     tdNote.textContent = n.label;
     tdShows.textContent = noteStats[i].showCount;
@@ -769,7 +700,11 @@ function endLevel() {
       else if (avg >= 1.4) tdAvg.classList.add('time-slow');
     }
 
-    tr.append(tdNote, tdShows, tdAvg);
+    tdAcc.textContent = accuracy + '%';
+    if (accuracy >= 90) tdAcc.style.color = 'var(--green)';
+    else if (accuracy < 70) tdAcc.style.color = 'var(--red)';
+
+    tr.append(tdNote, tdShows, tdAvg, tdAcc);
     tbody.appendChild(tr);
   });
 
