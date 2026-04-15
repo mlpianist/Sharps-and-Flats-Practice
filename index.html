@@ -487,7 +487,7 @@ let currentClef = 'treble';
 let currentAcc = 'sharp';
 let notePool = [];
 let noteStats = [];
-let introducedIndices = [];
+let introducedIndices = [];   // currently active notes (in order of introduction)
 let introOrder = [];
 let introPtr = 0;
 let currentNoteIdx = -1;
@@ -511,6 +511,9 @@ const CLARITY_THRESHOLD = 0.82;
 const MASTERY_THRESHOLD = 1.5;
 const MIN_SHOWS = 4;
 const NOTE_GAP_MS = 250;
+
+// New: Track how many times each note has been shown (for retirement logic)
+let showCountsForRetirement = [];
 
 // Debug functions
 function buildDebugPanel() {
@@ -576,37 +579,60 @@ function allIntroducedMastered() {
   return introducedIndices.every(i => isMastered(i));
 }
 
+// NEW: Determine which notes are still active (not retired)
+function getActiveNotes() {
+  const active = [...introducedIndices];
+  const numIntroduced = introducedIndices.length;
+
+  // Retire oldest notes based on your rule
+  if (numIntroduced >= 5) {
+    const notesToRetire = numIntroduced - 4; // retire 1st when 5th is active, etc.
+    for (let i = 0; i < notesToRetire; i++) {
+      const oldestIdx = introducedIndices[i];
+      // Only retire if the corresponding newer note has been shown at least 2 times
+      const newerNote = introducedIndices[4 + i];
+      if (showCountsForRetirement[newerNote] >= 2) {
+        const pos = active.indexOf(oldestIdx);
+        if (pos > -1) active.splice(pos, 1);
+      }
+    }
+  }
+  return active;
+}
+
 function pickNextNote() {
-  if (introducedIndices.length === 1) return introducedIndices[0];
+  const active = getActiveNotes();
+
+  if (active.length === 0) return introducedIndices[introducedIndices.length - 1]; // safety
 
   const newest = newestNoteIdx;
 
   if (noteStats[newest].showCount < 2) return newest;
 
   if (noteStats[newest].showCount < MIN_SHOWS) {
-    let idx = introducedIndices[Math.floor(Math.random() * introducedIndices.length)];
-    if (idx === currentNoteIdx && introducedIndices.length > 1) {
-      idx = introducedIndices[Math.floor(Math.random() * introducedIndices.length)];
+    let idx = active[Math.floor(Math.random() * active.length)];
+    if (idx === currentNoteIdx && active.length > 1) {
+      idx = active[Math.floor(Math.random() * active.length)];
     }
     return idx;
   }
 
-  return weightedPick();
+  return weightedPick(active);
 }
 
-function weightedPick() {
-  const weights = introducedIndices.map(i => rollingAvg(i) === null ? 5.0 : rollingAvg(i));
+function weightedPick(active) {
+  const weights = active.map(i => rollingAvg(i) === null ? 5.0 : rollingAvg(i));
   const total = weights.reduce((a, b) => a + b, 0);
   let r = Math.random() * total;
   for (let k = 0; k < weights.length; k++) {
     r -= weights[k];
     if (r <= 0) {
-      let idx = introducedIndices[k];
-      if (idx === currentNoteIdx && introducedIndices.length > 1) return weightedPick();
+      let idx = active[k];
+      if (idx === currentNoteIdx && active.length > 1) return weightedPick(active);
       return idx;
     }
   }
-  return introducedIndices[introducedIndices.length - 1];
+  return active[active.length - 1];
 }
 
 window.startLevel = async function(clef, acc) {
@@ -614,6 +640,7 @@ window.startLevel = async function(clef, acc) {
   currentAcc = acc;
   notePool = NOTE_POOLS[clef][acc].slice();
   noteStats = notePool.map(() => ({ timings: [], showCount: 0 }));
+  showCountsForRetirement = new Array(notePool.length).fill(0);
   introducedIndices = [];
   introOrder = shuffle([...Array(notePool.length).keys()]);
   introPtr = 0;
@@ -632,7 +659,7 @@ window.startLevel = async function(clef, acc) {
   document.getElementById('staff-wrap').classList.remove('correct','wrong','hidden-note');
 
   showScreen('screen-game');
-  buildDebugPanel();           // Debug panel
+  buildDebugPanel();
   await initAudio();
   if (!listening) return;
 
@@ -674,11 +701,12 @@ function onCorrect() {
   const idx = currentNoteIdx;
   noteStats[idx].timings.push(elapsed);
   noteStats[idx].showCount++;
+  showCountsForRetirement[idx]++;     // Track for retirement
 
   waitingForCorrect = false;
   flash('Correct!', 'correct');
 
-  updateDebugPanel();                 // Update debug averages
+  updateDebugPanel();
 
   if (introducedIndices.length === notePool.length && allIntroducedMastered()) {
     setTimeout(endLevel, 800);
