@@ -68,7 +68,7 @@ body::after {
 .screen { display: none; width: 100%; max-width: 540px; flex-direction: column; align-items: center; position: relative; z-index: 1; }
 .screen.active { display: flex; }
 
-/* ── TITLE ── */
+/* TITLE */
 .page-title {
   font-family: 'Playfair Display', serif;
   font-size: clamp(2rem, 6vw, 3.2rem);
@@ -89,7 +89,7 @@ body::after {
   text-align: center;
 }
 
-/* ── CARD ── */
+/* CARD */
 .card {
   background: var(--cream);
   border: 1px solid var(--rule);
@@ -113,7 +113,7 @@ body::after {
 .card::before { top: 10px; left: 14px; }
 .card::after  { top: 10px; right: 14px; }
 
-/* ── BUTTONS ── */
+/* BUTTONS */
 .btn {
   display: block;
   width: 100%;
@@ -143,7 +143,7 @@ body::after {
 
 .btn-gap { margin-top: 10px; }
 
-/* ── STAFF ── */
+/* STAFF */
 #staff-wrap {
   background: #fff;
   border: 1px solid var(--rule);
@@ -162,13 +162,12 @@ body::after {
 #staff-wrap.correct { background: #f0fff4; border-color: var(--green); }
 #staff-wrap.wrong   { background: #fff0f0; border-color: var(--red); }
 
-/* Note hidden state */
 #staff-wrap.hidden-note { opacity: 0; }
 #staff-wrap { transition: opacity 0.1s, background 0.2s, border-color 0.2s; }
 
 #staff-svg { display: block; }
 
-/* ── MIC STATUS ── */
+/* MIC STATUS */
 .status-row {
   display: flex;
   align-items: center;
@@ -205,7 +204,7 @@ body::after {
   transition: width 0.06s;
 }
 
-/* ── FEEDBACK ── */
+/* FEEDBACK */
 #feedback {
   text-align: center;
   font-family: 'Playfair Display', serif;
@@ -219,7 +218,7 @@ body::after {
 #feedback.correct { color: var(--green); }
 #feedback.wrong   { color: var(--red); }
 
-/* ── END SCREENS ── */
+/* END SCREENS */
 .end-ornament {
   font-family: 'Playfair Display', serif;
   font-size: 3rem;
@@ -281,22 +280,22 @@ body::after {
   <h1 class="page-title"><em>Sharps &amp; Flats</em><br>Note Trainer</h1>
   <p class="page-sub">Select a level to begin</p>
   <div class="card">
-    <div class="level-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%;">
-      <div class="level-card" onclick="startLevel('treble','sharp')">
-        <span class="level-clef">♯</span>
-        <span class="level-label">Treble Clef<br>Sharps</span>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%;">
+      <div class="level-card" onclick="startLevel('treble','sharp')" style="background: var(--cream2); border: 1px solid var(--rule); border-radius: 3px; padding: 22px 16px; cursor: pointer; text-align: center;">
+        <span class="level-clef" style="font-family: 'Playfair Display', serif; font-size: 1.6rem; font-style: italic; color: var(--gold); display: block; line-height: 1; margin-bottom: 6px;">♯</span>
+        <span class="level-label" style="font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.6;">Treble Clef<br>Sharps</span>
       </div>
-      <div class="level-card" onclick="startLevel('treble','flat')">
-        <span class="level-clef">♭</span>
-        <span class="level-label">Treble Clef<br>Flats</span>
+      <div class="level-card" onclick="startLevel('treble','flat')" style="background: var(--cream2); border: 1px solid var(--rule); border-radius: 3px; padding: 22px 16px; cursor: pointer; text-align: center;">
+        <span class="level-clef" style="font-family: 'Playfair Display', serif; font-size: 1.6rem; font-style: italic; color: var(--gold); display: block; line-height: 1; margin-bottom: 6px;">♭</span>
+        <span class="level-label" style="font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.6;">Treble Clef<br>Flats</span>
       </div>
-      <div class="level-card" onclick="startLevel('bass','sharp')">
-        <span class="level-clef">♯</span>
-        <span class="level-label">Bass Clef<br>Sharps</span>
+      <div class="level-card" onclick="startLevel('bass','sharp')" style="background: var(--cream2); border: 1px solid var(--rule); border-radius: 3px; padding: 22px 16px; cursor: pointer; text-align: center;">
+        <span class="level-clef" style="font-family: 'Playfair Display', serif; font-size: 1.6rem; font-style: italic; color: var(--gold); display: block; line-height: 1; margin-bottom: 6px;">♯</span>
+        <span class="level-label" style="font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.6;">Bass Clef<br>Sharps</span>
       </div>
-      <div class="level-card" onclick="startLevel('bass','flat')">
-        <span class="level-clef">♭</span>
-        <span class="level-label">Bass Clef<br>Flats</span>
+      <div class="level-card" onclick="startLevel('bass','flat')" style="background: var(--cream2); border: 1px solid var(--rule); border-radius: 3px; padding: 22px 16px; cursor: pointer; text-align: center;">
+        <span class="level-clef" style="font-family: 'Playfair Display', serif; font-size: 1.6rem; font-style: italic; color: var(--gold); display: block; line-height: 1; margin-bottom: 6px;">♭</span>
+        <span class="level-label" style="font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.6;">Bass Clef<br>Flats</span>
       </div>
     </div>
   </div>
@@ -345,8 +344,8 @@ body::after {
 <script type="module">
 import { PitchDetector } from 'pitchy';
 
-// ─── NOTE POOLS ───────────────────────────────────────────
-const NOTE_POOLS = {
+// NOTE POOLS (unchanged)
+const NOTE_POOLS = { /* ... same as before ... */ 
   treble: {
     sharp: [
       { vex:'e#/4', acc:'#', midi:65,  label:'E#4' },
@@ -397,9 +396,8 @@ const NOTE_POOLS = {
   },
 };
 
-// ─── VexFlow ──────────────────────────────────────────────
-const VF = (typeof Vex !== 'undefined' && Vex.Flow) ? Vex.Flow
-         : (typeof VexFlow !== 'undefined' ? VexFlow : null);
+// VexFlow rendering (unchanged)
+const VF = Vex ? Vex.Flow : VexFlow;
 
 function renderNote(noteObj) {
   const container = document.getElementById('staff-svg');
@@ -426,75 +424,55 @@ function renderNote(noteObj) {
   voice.draw(ctx, stave);
 }
 
-// ─── Pitch detection ──────────────────────────────────────
 function freqToMidi(freq, centsWindow = 80) {
-  const exact   = 12 * Math.log2(freq / 440) + 69;
+  const exact = 12 * Math.log2(freq / 440) + 69;
   const nearest = Math.round(exact);
-  const cents   = Math.abs(exact - nearest) * 100;
+  const cents = Math.abs(exact - nearest) * 100;
   return cents <= centsWindow ? nearest : -1;
 }
 
-// ─── State ────────────────────────────────────────────────
+// State
 let currentClef = 'treble';
-let currentAcc  = 'sharp';
-let notePool    = [];
-
-// Per-note tracking: { timings: number[], showCount: number }
-let noteStats   = [];
-
-// Introduction state
+let currentAcc = 'sharp';
+let notePool = [];
+let noteStats = [];
 let introducedIndices = [];
-let introOrder  = [];
-let introPtr    = 0;
-
-// Current note
+let introOrder = [];
+let introPtr = 0;
 let currentNoteIdx = -1;
-let noteShownAt    = 0;
+let noteShownAt = 0;
 let waitingForCorrect = false;
+let newestNoteIdx = -1;
+let inEqualRandomPhase = false;
 
-// New logic flags
-let newestNoteIdx = -1;           // index of the most recently introduced note
-let inEqualRandomPhase = false;   // true while newest note has < 4 shows
-
-// Audio
-let listening   = false;
-let audioCtx    = null;
-let analyser    = null;
-let micStream   = null;
-let rafId       = null;
-let detector    = null;
-let inputBuf    = null;
-let cooldown    = false;
-let lastMidi    = -1;
+let listening = false;
+let audioCtx = null;
+let analyser = null;
+let micStream = null;
+let rafId = null;
+let detector = null;
+let inputBuf = null;
+let cooldown = false;
+let lastMidi = -1;
 let stableCount = 0;
 
-const STABLE_NEEDED     = 6;
+const STABLE_NEEDED = 6;
 const CLARITY_THRESHOLD = 0.82;
 const MASTERY_THRESHOLD = 1.5;
-const MIN_SHOWS         = 4;
-const NOTE_GAP_MS       = 250;
+const MIN_SHOWS = 4;
+const NOTE_GAP_MS = 250;
 
-// ─── Screen helpers ───────────────────────────────────────
+// Screen helpers
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-window.goHome = function() {
-  stopAudio();
-  showScreen('screen-home');
-};
+window.goHome = () => { stopAudio(); showScreen('screen-home'); };
+window.quitGame = () => { stopAudio(); showScreen('screen-home'); };
+window.retryLevel = () => { startLevel(currentClef, currentAcc); };
 
-window.quitGame = function() {
-  stopAudio();
-  showScreen('screen-home');
-};
-
-window.retryLevel = function() {
-  startLevel(currentClef, currentAcc);
-};
-
-// ─── Per-note helpers ─────────────────────────────────────
+// Helpers
 function rollingAvg(idx) {
   const t = noteStats[idx].timings;
   if (t.length < MIN_SHOWS) return null;
@@ -511,33 +489,26 @@ function allIntroducedMastered() {
   return introducedIndices.every(i => isMastered(i));
 }
 
-// ─── Note selection logic ─────────────────────────────────
+// Note picking logic (your requested rules)
 function pickNextNote() {
-  // First note: force until 4 correct
   if (introducedIndices.length === 1) {
     return introducedIndices[0];
   }
 
   const newest = newestNoteIdx;
 
-  // If newest note has fewer than 2 shows → force it (the initial 2 dedicated shows)
   if (noteStats[newest].showCount < 2) {
     return newest;
   }
 
-  // If newest note has < 4 shows → equal random among introduced notes
   if (noteStats[newest].showCount < MIN_SHOWS) {
-    inEqualRandomPhase = true;
     let idx = introducedIndices[Math.floor(Math.random() * introducedIndices.length)];
-    // Avoid same note twice in a row if possible
     if (idx === currentNoteIdx && introducedIndices.length > 1) {
       idx = introducedIndices[Math.floor(Math.random() * introducedIndices.length)];
     }
     return idx;
   }
 
-  // Newest note has 4+ shows → normal weighted pick
-  inEqualRandomPhase = false;
   return weightedPick();
 }
 
@@ -553,7 +524,7 @@ function weightedPick() {
     if (r <= 0) {
       let idx = introducedIndices[k];
       if (idx === currentNoteIdx && introducedIndices.length > 1) {
-        return weightedPick(); // retry once to avoid back-to-back
+        return weightedPick();
       }
       return idx;
     }
@@ -561,26 +532,27 @@ function weightedPick() {
   return introducedIndices[introducedIndices.length - 1];
 }
 
-// ─── Main start ───────────────────────────────────────────
+// Start level
 window.startLevel = async function(clef, acc) {
   currentClef = clef;
-  currentAcc  = acc;
-  notePool    = NOTE_POOLS[clef][acc].slice();
-  noteStats   = notePool.map(() => ({ timings: [], showCount: 0 }));
+  currentAcc = acc;
+  notePool = NOTE_POOLS[clef][acc].slice();
+  noteStats = notePool.map(() => ({ timings: [], showCount: 0 }));
   introducedIndices = [];
-  introOrder  = shuffle([...Array(notePool.length).keys()]);
-  introPtr    = 0;
+  introOrder = shuffle([...Array(notePool.length).keys()]);
+  introPtr = 0;
   currentNoteIdx = -1;
   newestNoteIdx = -1;
   inEqualRandomPhase = false;
-  cooldown    = false;
-  lastMidi    = -1;
+  cooldown = false;
+  lastMidi = -1;
   stableCount = 0;
   waitingForCorrect = false;
 
   const accLabel = acc === 'sharp' ? 'Sharps' : 'Flats';
   const clefLabel = clef === 'treble' ? 'Treble' : 'Bass';
   document.getElementById('game-title').innerHTML = `${clefLabel} <em>${accLabel}</em>`;
+
   document.getElementById('feedback').innerHTML = '&nbsp;';
   document.getElementById('staff-wrap').classList.remove('correct','wrong','hidden-note');
 
@@ -592,29 +564,25 @@ window.startLevel = async function(clef, acc) {
   audioLoop();
 };
 
-// ─── Show a note ──────────────────────────────────────────
 function showNextNote() {
   if (!listening) return;
 
   let idx;
-
-  // Introduce new note when all current notes are mastered
   if (introPtr < introOrder.length && allIntroducedMastered()) {
     idx = introOrder[introPtr];
     introducedIndices.push(idx);
     newestNoteIdx = idx;
     introPtr++;
-  } 
-  else {
+  } else {
     idx = pickNextNote();
   }
 
   currentNoteIdx = idx;
-  noteShownAt    = Date.now();
+  noteShownAt = Date.now();
   waitingForCorrect = true;
-  cooldown       = false;
-  lastMidi       = -1;
-  stableCount    = 0;
+  cooldown = false;
+  lastMidi = -1;
+  stableCount = 0;
 
   const wrap = document.getElementById('staff-wrap');
   wrap.classList.remove('correct', 'wrong', 'hidden-note');
@@ -625,7 +593,6 @@ function showNextNote() {
   document.getElementById('status-text').textContent = 'Listening — play the note shown';
 }
 
-// ─── After correct ────────────────────────────────────────
 function onCorrect() {
   const elapsed = (Date.now() - noteShownAt) / 1000;
   const idx = currentNoteIdx;
@@ -633,16 +600,13 @@ function onCorrect() {
   noteStats[idx].showCount++;
 
   waitingForCorrect = false;
-
   flash('Correct!', 'correct');
 
-  // Check if level is finished
   if (introducedIndices.length === notePool.length && allIntroducedMastered()) {
-    setTimeout(() => endLevel(), 700);
+    setTimeout(endLevel, 700);
     return;
   }
 
-  // Hide note briefly then show next
   setTimeout(() => {
     const wrap = document.getElementById('staff-wrap');
     wrap.classList.add('hidden-note');
@@ -654,7 +618,6 @@ function onCorrect() {
   }, 500);
 }
 
-// ─── Wrong note ───────────────────────────────────────────
 function onWrong() {
   flash('Wrong', 'wrong');
   cooldown = true;
@@ -668,50 +631,51 @@ function flash(text, cls) {
   const wrap = document.getElementById('staff-wrap');
   wrap.classList.remove('correct','wrong');
   wrap.classList.add(cls);
-  if (cls === 'correct') {
-    setTimeout(() => wrap.classList.remove('correct'), 500);
-  } else {
-    setTimeout(() => { wrap.classList.remove('wrong'); }, 700);
-  }
+  if (cls === 'correct') setTimeout(() => wrap.classList.remove('correct'), 500);
+  else setTimeout(() => wrap.classList.remove('wrong'), 700);
 }
 
-// ─── End level ────────────────────────────────────────────
+// FIXED endLevel function
 function endLevel() {
   stopAudio();
-  const accLabel  = currentAcc === 'sharp' ? 'Sharps' : 'Flats';
+  const accLabel = currentAcc === 'sharp' ? 'Sharps' : 'Flats';
   const clefLabel = currentClef === 'treble' ? 'Treble Clef' : 'Bass Clef';
   document.getElementById('results-title').textContent = `${clefLabel} ${accLabel} — Complete`;
-  document.getElementById('results-sub').textContent =
-    'All 9 notes mastered. Here are your average response times:';
+  document.getElementById('results-sub').textContent = 'All 9 notes mastered. Here are your average response times:';
 
   const tbody = document.getElementById('results-body');
   tbody.innerHTML = '';
+
   notePool.forEach((n, i) => {
     const avg = rollingAvg(i);
     const showCount = noteStats[i].showCount;
+
     const tr = document.createElement('tr');
-    const tdNote  = document.createElement('td');
+    const tdNote = document.createElement('td');
     const tdShows = document.createElement('td');
-    const tdAvg   = document.createElement('td');
-    tdNote.textContent  = n.label;
+    const tdAvg = document.createElement('td');
+
+    tdNote.textContent = n.label;
     tdShows.textContent = showCount;
+
     if (avg === null) {
       tdAvg.textContent = '—';
     } else {
       tdAvg.textContent = avg.toFixed(2) + 's';
-      tdAvg.classList.add(avg <= 1.0 ? 'time-fast' : avg >= 1.4 ? 'time-slow' : '');
+      if (avg <= 1.0) tdAvg.classList.add('time-fast');
+      else if (avg >= 1.4) tdAvg.classList.add('time-slow');
+      // No else — we simply don't add any class when 1.0 < avg < 1.4
     }
-    tr.appendChild(tdNote);
-    tr.appendChild(tdShows);
-    tr.appendChild(tdAvg);
+
+    tr.append(tdNote, tdShows, tdAvg);
     tbody.appendChild(tr);
   });
 
   showScreen('screen-results');
 }
 
-// ─── Audio ────────────────────────────────────────────────
-async function initAudio() {
+// Audio functions (unchanged)
+async function initAudio() { /* ... same as previous version ... */
   stopAudio();
   document.getElementById('mic-dot').className = 'mic-dot';
   document.getElementById('status-text').textContent = 'Requesting microphone…';
@@ -739,8 +703,8 @@ async function initAudio() {
 function stopAudio() {
   listening = false;
   cancelAnimationFrame(rafId);
-  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
-  if (audioCtx)  { audioCtx.close(); audioCtx = null; }
+  if (micStream) micStream.getTracks().forEach(t => t.stop());
+  if (audioCtx) audioCtx.close();
   detector = null; inputBuf = null;
 }
 
@@ -771,15 +735,11 @@ function audioLoop() {
   else { lastMidi = midi; stableCount = 1; }
 
   if (stableCount >= STABLE_NEEDED && !cooldown && waitingForCorrect && currentNoteIdx !== -1) {
-    if (midi === notePool[currentNoteIdx].midi) {
-      onCorrect();
-    } else {
-      onWrong();
-    }
+    if (midi === notePool[currentNoteIdx].midi) onCorrect();
+    else onWrong();
   }
 }
 
-// ─── Utils ────────────────────────────────────────────────
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
