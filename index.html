@@ -9,7 +9,6 @@
 <script type="importmap">{ "imports": { "pitchy": "https://cdn.jsdelivr.net/npm/pitchy@4.1.0/+esm" } }</script>
 
 <style>
-/* ... all original styles unchanged ... */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -39,25 +38,29 @@ body {
   position: relative;
 }
 
-body::before, body::after { /* unchanged */ 
+body::before {
   content: '';
   position: fixed;
   inset: 0;
+  background-image: repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(180,160,120,0.13) 31px, rgba(180,160,120,0.13) 32px);
   pointer-events: none;
   z-index: 0;
 }
-body::before {
-  background-image: repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(180,160,120,0.13) 31px, rgba(180,160,120,0.13) 32px);
-}
+
 body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
   background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(184,134,11,0.06) 0%, transparent 70%),
               radial-gradient(ellipse 60% 40% at 90% 100%, rgba(139,26,26,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .screen { display: none; width: 100%; max-width: 540px; flex-direction: column; align-items: center; position: relative; z-index: 1; }
 .screen.active { display: flex; }
 
-.page-title { /* unchanged */ 
+.page-title {
   font-family: 'Playfair Display', serif;
   font-size: clamp(2rem, 6vw, 3.2rem);
   font-style: italic;
@@ -140,35 +143,55 @@ body::after {
   line-height: 1.6;
 }
 
-.btn { /* unchanged */ 
-  display: block; width: 100%; padding: 14px 20px;
+.btn {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.75rem; font-weight: 500;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  border: 1px solid var(--rule); border-radius: 3px;
-  cursor: pointer; transition: all 0.18s;
-  background: var(--cream2); color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.18s;
+  background: var(--cream2);
+  color: var(--ink);
 }
 .btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .btn:active { transform: scale(0.98); }
 .btn:disabled { opacity: 0.4; cursor: default; }
 
-.btn-gold { background: var(--gold); color: var(--paper); border-color: var(--gold); }
+.btn-gold {
+  background: var(--gold);
+  color: var(--paper);
+  border-color: var(--gold);
+}
 .btn-gold:hover { background: var(--ink); border-color: var(--ink); }
 .btn-gap { margin-top: 10px; }
 
 /* STAFF */
-#staff-wrap { /* unchanged */ 
-  background: #fff; border: 1px solid var(--rule); border-radius: 3px;
-  padding: 10px 0 6px; margin-bottom: 18px;
-  display: flex; flex-direction: column; align-items: center;
-  min-height: 148px; position: relative; width: 100%; overflow: hidden;
+#staff-wrap {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 10px 0 6px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 148px;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  transition: background 0.2s, border-color 0.2s;
 }
 #staff-wrap.correct { background: #f0fff4; border-color: var(--green); }
 #staff-wrap.wrong   { background: #fff0f0; border-color: var(--red); }
 #staff-wrap.hidden-note { opacity: 0; }
 
-/* DEBUG PANEL - Easy to remove */
+/* DEBUG PANEL */
 #debug-panel {
   width: 100%;
   background: var(--cream2);
@@ -210,7 +233,22 @@ body::after {
 }
 .debug-note .avg.slow { color: var(--red); }
 
-/* Rest of styles unchanged */
+/* MIC & FEEDBACK */
+.status-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.mic-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--rule);
+  flex-shrink: 0;
+}
+.mic-dot.active {
+  background: var(--green);
+  box-shadow: 0 0 7px rgba(26,92,46,0.5);
+  animation: blink 1.6s infinite;
+}
+.mic-dot.error { background: var(--red); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
 #status-text { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.04em; }
 .conf-bar-wrap { height: 2px; background: var(--rule); border-radius: 2px; margin-bottom: 16px; overflow: hidden; }
 .conf-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--gold), var(--green)); border-radius: 2px; transition: width 0.06s; }
@@ -228,12 +266,63 @@ body::after {
 #feedback.correct { color: var(--green); }
 #feedback.wrong   { color: var(--red); }
 
-.end-ornament, .end-title, .end-sub, .results-table, .divider { /* unchanged from previous version */ }
+/* RESULTS */
+.end-ornament {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+  font-style: italic;
+}
+.end-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.end-title.win  { color: var(--green); }
+.end-title.lose { color: var(--red); }
+.end-sub { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 24px; text-align: center; line-height: 1.8; }
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  font-size: 0.7rem;
+}
+.results-table th {
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+}
+.results-table th:last-child { text-align: right; }
+.results-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(200,191,168,0.4);
+  color: var(--ink);
+}
+.results-table td:last-child { text-align: right; font-weight: 500; }
+.results-table tr:last-child td { border-bottom: none; }
+.time-fast { color: var(--green); }
+.time-slow { color: var(--red); }
+
+.divider {
+  width: 40px;
+  height: 1px;
+  background: var(--gold);
+  margin: 0 auto 24px;
+  opacity: 0.6;
+}
 </style>
 </head>
 <body>
 
-<!-- HOME - unchanged -->
+<!-- HOME -->
 <div id="screen-home" class="screen active">
   <h1 class="page-title"><em>Sharps &amp; Flats</em><br>Note Trainer</h1>
   <p class="page-sub">Select a level to begin</p>
@@ -268,7 +357,7 @@ body::after {
       <div id="staff-svg"></div>
     </div>
 
-    <!-- DEBUG PANEL - Easy to remove later -->
+    <!-- DEBUG PANEL -->
     <div id="debug-panel">
       <h3>Debug: Average Times (last 4)</h3>
       <div id="debug-averages"></div>
@@ -286,7 +375,7 @@ body::after {
   </div>
 </div>
 
-<!-- RESULTS - unchanged -->
+<!-- RESULTS -->
 <div id="screen-results" class="screen">
   <h1 class="page-title"><em>Well done!</em></h1>
   <div class="divider"></div>
@@ -308,9 +397,9 @@ body::after {
 <script type="module">
 import { PitchDetector } from 'pitchy';
 
-const NOTE_POOLS = { /* ... exactly the same as previous version ... */
+const NOTE_POOLS = {
   treble: {
-    sharp: [ /* 9 notes unchanged */ 
+    sharp: [
       { vex:'e#/4', acc:'#', midi:65,  label:'E#4' },
       { vex:'f#/4', acc:'#', midi:66,  label:'F#4' },
       { vex:'g#/4', acc:'#', midi:68,  label:'G#4' },
@@ -321,7 +410,7 @@ const NOTE_POOLS = { /* ... exactly the same as previous version ... */
       { vex:'e#/5', acc:'#', midi:77,  label:'E#5' },
       { vex:'f#/5', acc:'#', midi:78,  label:'F#5' },
     ],
-    flat: [ /* 9 notes unchanged */ 
+    flat: [
       { vex:'eb/4', acc:'b', midi:63,  label:'Eb4' },
       { vex:'fb/4', acc:'b', midi:64,  label:'Fb4' },
       { vex:'gb/4', acc:'b', midi:66,  label:'Gb4' },
@@ -333,16 +422,35 @@ const NOTE_POOLS = { /* ... exactly the same as previous version ... */
       { vex:'fb/5', acc:'b', midi:76,  label:'Fb5' },
     ],
   },
-  bass: { /* unchanged */ 
-    sharp: [ /* ... */ ],
-    flat: [ /* ... */ ]
-  }
+  bass: {
+    sharp: [
+      { vex:'g#/2', acc:'#', midi:44,  label:'G#2' },
+      { vex:'a#/2', acc:'#', midi:46,  label:'A#2' },
+      { vex:'b#/2', acc:'#', midi:48,  label:'B#2' },
+      { vex:'c#/3', acc:'#', midi:49,  label:'C#3' },
+      { vex:'d#/3', acc:'#', midi:51,  label:'D#3' },
+      { vex:'e#/3', acc:'#', midi:53,  label:'E#3' },
+      { vex:'f#/3', acc:'#', midi:54,  label:'F#3' },
+      { vex:'g#/3', acc:'#', midi:56,  label:'G#3' },
+      { vex:'a#/3', acc:'#', midi:58,  label:'A#3' },
+    ],
+    flat: [
+      { vex:'gb/2', acc:'b', midi:42,  label:'Gb2' },
+      { vex:'ab/2', acc:'b', midi:44,  label:'Ab2' },
+      { vex:'bb/2', acc:'b', midi:46,  label:'Bb2' },
+      { vex:'cb/3', acc:'b', midi:47,  label:'Cb3' },
+      { vex:'db/3', acc:'b', midi:49,  label:'Db3' },
+      { vex:'eb/3', acc:'b', midi:51,  label:'Eb3' },
+      { vex:'fb/3', acc:'b', midi:52,  label:'Fb3' },
+      { vex:'gb/3', acc:'b', midi:54,  label:'Gb3' },
+      { vex:'ab/3', acc:'b', midi:56,  label:'Ab3' },
+    ],
+  },
 };
 
 const VF = Vex ? Vex.Flow : VexFlow;
 
-function renderNote(noteObj) { /* unchanged */ 
-  /* ... same rendering code as before ... */
+function renderNote(noteObj) {
   const container = document.getElementById('staff-svg');
   container.innerHTML = '';
   const wrap = document.getElementById('staff-wrap');
@@ -367,14 +475,14 @@ function renderNote(noteObj) { /* unchanged */
   voice.draw(ctx, stave);
 }
 
-function freqToMidi(freq, centsWindow = 80) { /* unchanged */ 
+function freqToMidi(freq, centsWindow = 80) {
   const exact = 12 * Math.log2(freq / 440) + 69;
   const nearest = Math.round(exact);
   const cents = Math.abs(exact - nearest) * 100;
   return cents <= centsWindow ? nearest : -1;
 }
 
-// State (unchanged)
+// State
 let currentClef = 'treble';
 let currentAcc = 'sharp';
 let notePool = [];
@@ -404,7 +512,7 @@ const MASTERY_THRESHOLD = 1.5;
 const MIN_SHOWS = 4;
 const NOTE_GAP_MS = 250;
 
-// NEW: Debug display functions (easy to remove)
+// Debug functions
 function buildDebugPanel() {
   const container = document.getElementById('debug-averages');
   container.innerHTML = '';
@@ -433,7 +541,25 @@ function updateDebugPanel() {
   });
 }
 
-// Rest of the code remains exactly the same as the last working version
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+window.goHome = function() {
+  stopAudio();
+  showScreen('screen-home');
+};
+
+window.quitGame = function() {
+  stopAudio();
+  showScreen('screen-home');
+};
+
+window.retryLevel = function() {
+  startLevel(currentClef, currentAcc);
+};
+
 function rollingAvg(idx) {
   const t = noteStats[idx].timings;
   if (t.length < MIN_SHOWS) return null;
@@ -450,10 +576,13 @@ function allIntroducedMastered() {
   return introducedIndices.every(i => isMastered(i));
 }
 
-function pickNextNote() { /* unchanged */ 
+function pickNextNote() {
   if (introducedIndices.length === 1) return introducedIndices[0];
+
   const newest = newestNoteIdx;
+
   if (noteStats[newest].showCount < 2) return newest;
+
   if (noteStats[newest].showCount < MIN_SHOWS) {
     let idx = introducedIndices[Math.floor(Math.random() * introducedIndices.length)];
     if (idx === currentNoteIdx && introducedIndices.length > 1) {
@@ -461,10 +590,11 @@ function pickNextNote() { /* unchanged */
     }
     return idx;
   }
+
   return weightedPick();
 }
 
-function weightedPick() { /* unchanged */ 
+function weightedPick() {
   const weights = introducedIndices.map(i => rollingAvg(i) === null ? 5.0 : rollingAvg(i));
   const total = weights.reduce((a, b) => a + b, 0);
   let r = Math.random() * total;
@@ -480,7 +610,6 @@ function weightedPick() { /* unchanged */
 }
 
 window.startLevel = async function(clef, acc) {
-  // ... same as before ...
   currentClef = clef;
   currentAcc = acc;
   notePool = NOTE_POOLS[clef][acc].slice();
@@ -503,7 +632,7 @@ window.startLevel = async function(clef, acc) {
   document.getElementById('staff-wrap').classList.remove('correct','wrong','hidden-note');
 
   showScreen('screen-game');
-  buildDebugPanel();                    // ← New
+  buildDebugPanel();           // Debug panel
   await initAudio();
   if (!listening) return;
 
@@ -511,8 +640,7 @@ window.startLevel = async function(clef, acc) {
   audioLoop();
 };
 
-function showNextNote() { /* unchanged */ 
-  /* ... same code ... */
+function showNextNote() {
   if (!listening) return;
 
   let idx;
@@ -550,7 +678,7 @@ function onCorrect() {
   waitingForCorrect = false;
   flash('Correct!', 'correct');
 
-  updateDebugPanel();                    // ← New: update debug display
+  updateDebugPanel();                 // Update debug averages
 
   if (introducedIndices.length === notePool.length && allIntroducedMastered()) {
     setTimeout(endLevel, 800);
@@ -568,18 +696,24 @@ function onCorrect() {
   }, 500);
 }
 
-function onWrong() { /* unchanged */ 
+function onWrong() {
   flash('Wrong', 'wrong');
   cooldown = true;
   setTimeout(() => { cooldown = false; lastMidi = -1; stableCount = 0; }, 900);
 }
 
-function flash(text, cls) { /* unchanged */ 
-  /* ... same ... */
+function flash(text, cls) {
+  const fb = document.getElementById('feedback');
+  fb.textContent = text;
+  fb.className = cls;
+  const wrap = document.getElementById('staff-wrap');
+  wrap.classList.remove('correct','wrong');
+  wrap.classList.add(cls);
+  if (cls === 'correct') setTimeout(() => wrap.classList.remove('correct'), 500);
+  else setTimeout(() => wrap.classList.remove('wrong'), 700);
 }
 
-function endLevel() { /* unchanged */ 
-  /* ... same results code ... */
+function endLevel() {
   stopAudio();
   const accLabel = currentAcc === 'sharp' ? 'Sharps' : 'Flats';
   const clefLabel = currentClef === 'treble' ? 'Treble Clef' : 'Bass Clef';
@@ -614,14 +748,78 @@ function endLevel() { /* unchanged */
   showScreen('screen-results');
 }
 
-// Audio functions unchanged (initAudio, stopAudio, audioLoop, shuffle, etc.)
-async function initAudio() { /* same as before */ 
-  /* ... */
+async function initAudio() {
+  stopAudio();
+  document.getElementById('mic-dot').className = 'mic-dot';
+  document.getElementById('status-text').textContent = 'Requesting microphone…';
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    });
+  } catch(e) {
+    document.getElementById('status-text').textContent = 'Mic access denied — please allow microphone.';
+    document.getElementById('mic-dot').className = 'mic-dot error';
+    return;
+  }
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 4096;
+  analyser.smoothingTimeConstant = 0.0;
+  audioCtx.createMediaStreamSource(micStream).connect(analyser);
+  detector = PitchDetector.forFloat32Array(analyser.fftSize);
+  inputBuf = new Float32Array(detector.inputLength);
+  listening = true;
+  document.getElementById('mic-dot').className = 'mic-dot active';
+  document.getElementById('status-text').textContent = 'Listening — play the note shown';
 }
 
-function stopAudio() { /* same */ }
-function audioLoop() { /* same */ }
-function shuffle(arr) { /* same */ }
+function stopAudio() {
+  listening = false;
+  cancelAnimationFrame(rafId);
+  if (micStream) micStream.getTracks().forEach(t => t.stop());
+  if (audioCtx) audioCtx.close();
+  detector = null; inputBuf = null;
+}
+
+function audioLoop() {
+  if (!listening) return;
+  rafId = requestAnimationFrame(audioLoop);
+  analyser.getFloatTimeDomainData(inputBuf);
+  const [pitch, clarity] = detector.findPitch(inputBuf, audioCtx.sampleRate);
+  const confBar = document.getElementById('conf-bar');
+
+  if (clarity < CLARITY_THRESHOLD || pitch < 20) {
+    confBar.style.width = '0%';
+    if (!cooldown) { lastMidi = -1; stableCount = 0; }
+    return;
+  }
+
+  const midi = freqToMidi(pitch);
+  if (midi === -1) {
+    confBar.style.width = '0%';
+    if (!cooldown) { lastMidi = -1; stableCount = 0; }
+    return;
+  }
+
+  const barPct = Math.min(100, ((clarity - CLARITY_THRESHOLD) / (1 - CLARITY_THRESHOLD)) * 100);
+  confBar.style.width = barPct.toFixed(0) + '%';
+
+  if (midi === lastMidi) stableCount++;
+  else { lastMidi = midi; stableCount = 1; }
+
+  if (stableCount >= STABLE_NEEDED && !cooldown && waitingForCorrect && currentNoteIdx !== -1) {
+    if (midi === notePool[currentNoteIdx].midi) onCorrect();
+    else onWrong();
+  }
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 window.addEventListener('resize', () => {
   if (currentNoteIdx !== -1 && listening) renderNote(notePool[currentNoteIdx]);
