@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sharps & Flats — Note Trainer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/3.0.9/vexflow-min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script type="importmap">{ "imports": { "pitchy": "https://cdn.jsdelivr.net/npm/pitchy@4.1.0/+esm" } }</script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:     #1a1410;
+  --paper:   #f5f0e8;
+  --cream:   #ede8da;
+  --cream2:  #e5dfd0;
+  --rule:    #c8bfa8;
+  --gold:    #b8860b;
+  --gold2:   #d4a017;
+  --red:     #8b1a1a;
+  --green:   #1a5c2e;
+  --muted:   #7a6e5e;
+  --shadow:  rgba(26,20,16,0.18);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'IBM Plex Mono', monospace;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+}
+
+/* Aged paper texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 31px,
+      rgba(180,160,120,0.13) 31px,
+      rgba(180,160,120,0.13) 32px
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(184,134,11,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(139,26,26,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.screen { display: none; width: 100%; max-width: 540px; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+.screen.active { display: flex; }
+
+/* ── TITLE ── */
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  font-style: italic;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.page-title em { color: var(--gold); font-style: normal; }
+.page-sub {
+  font-size: 0.62rem;
+  color: var(--muted);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--cream);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 32px;
+  width: 100%;
+  box-shadow:
+    0 2px 0 var(--rule),
+    0 8px 32px var(--shadow),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+  position: relative;
+}
+
+/* Corner ornaments */
+.card::before, .card::after {
+  content: '✦';
+  position: absolute;
+  font-size: 0.55rem;
+  color: var(--gold);
+  opacity: 0.6;
+}
+.card::before { top: 10px; left: 14px; }
+.card::after  { top: 10px; right: 14px; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.18s;
+  background: var(--cream2);
+  color: var(--ink);
+}
+.btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+.btn-gold {
+  background: var(--gold);
+  color: var(--paper);
+  border-color: var(--gold);
+}
+.btn-gold:hover { background: var(--ink); border-color: var(--ink); }
+
+.btn-gap { margin-top: 10px; }
+
+/* ── LEVEL SELECT ── */
+.level-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+
+.level-card {
+  background: var(--cream2);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 22px 16px;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.level-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transition: transform 0.2s;
+}
+.level-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 16px var(--shadow); }
+.level-card:hover::after { transform: scaleX(1); }
+.level-card:active { transform: scale(0.97); }
+
+.level-clef {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-style: italic;
+  color: var(--gold);
+  display: block;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.level-label {
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
+
+.back-link {
+  margin-top: 20px;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: 'IBM Plex Mono', monospace;
+  transition: color 0.18s;
+}
+.back-link:hover { color: var(--gold); }
+
+/* ── STAFF ── */
+#staff-wrap {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 10px 0 6px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 148px;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  transition: background 0.2s, border-color 0.2s;
+}
+#staff-wrap.correct { background: #f0fff4; border-color: var(--green); }
+#staff-wrap.wrong   { background: #fff0f0; border-color: var(--red); }
+
+/* Note hidden state */
+#staff-wrap.hidden-note { opacity: 0; }
+#staff-wrap { transition: opacity 0.1s, background 0.2s, border-color 0.2s; }
+
+#staff-svg { display: block; }
+
+/* ── MIC STATUS ── */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.mic-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--rule);
+  flex-shrink: 0;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.mic-dot.active {
+  background: var(--green);
+  box-shadow: 0 0 7px rgba(26,92,46,0.5);
+  animation: blink 1.6s infinite;
+}
+.mic-dot.error { background: var(--red); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+#status-text { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.04em; }
+
+.conf-bar-wrap {
+  height: 2px;
+  background: var(--rule);
+  border-radius: 2px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.conf-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--gold), var(--green));
+  border-radius: 2px;
+  transition: width 0.06s;
+}
+
+/* ── FEEDBACK ── */
+#feedback {
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-style: italic;
+  height: 38px;
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+  transition: color 0.15s;
+}
+#feedback.correct { color: var(--green); }
+#feedback.wrong   { color: var(--red); }
+
+/* ── PROGRESS PANEL ── */
+.progress-panel {
+  background: var(--cream2);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  width: 100%;
+}
+.progress-title {
+  font-size: 0.58rem;
+  color: var(--muted);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.note-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 4px;
+}
+.note-pip {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  border: 1px solid var(--rule);
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.45rem;
+  color: var(--muted);
+  letter-spacing: 0;
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
+  cursor: default;
+  position: relative;
+}
+.note-pip.introduced { background: var(--cream2); border-color: var(--gold); color: var(--gold); }
+.note-pip.mastered   { background: var(--green);  border-color: var(--green); color: #fff; }
+.note-pip.current    { border-color: var(--ink); color: var(--ink); font-weight: 500; }
+.note-pip-label { font-size: 0.48rem; text-align: center; line-height: 1.1; }
+
+/* ── END SCREENS ── */
+.end-ornament {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+  font-style: italic;
+}
+.end-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.end-title.win  { color: var(--green); }
+.end-title.lose { color: var(--red); }
+.end-sub { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 24px; text-align: center; line-height: 1.8; }
+
+/* Results table */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  font-size: 0.7rem;
+}
+.results-table th {
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+}
+.results-table th:last-child { text-align: right; }
+.results-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(200,191,168,0.4);
+  color: var(--ink);
+}
+.results-table td:last-child { text-align: right; font-weight: 500; }
+.results-table tr:last-child td { border-bottom: none; }
+.time-fast { color: var(--green); }
+.time-slow { color: var(--red); }
+
+.divider {
+  width: 40px;
+  height: 1px;
+  background: var(--gold);
+  margin: 0 auto 24px;
+  opacity: 0.6;
+}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="screen-home" class="screen active">
+  <h1 class="page-title"><em>Sharps &amp; Flats</em><br>Note Trainer</h1>
+  <p class="page-sub">Select a level to begin</p>
+  <div class="card">
+    <div class="level-grid">
+      <div class="level-card" onclick="startLevel('treble','sharp')">
+        <span class="level-clef">♯</span>
+        <span class="level-label">Treble Clef<br>Sharps</span>
+      </div>
+      <div class="level-card" onclick="startLevel('treble','flat')">
+        <span class="level-clef">♭</span>
+        <span class="level-label">Treble Clef<br>Flats</span>
+      </div>
+      <div class="level-card" onclick="startLevel('bass','sharp')">
+        <span class="level-clef">♯</span>
+        <span class="level-label">Bass Clef<br>Sharps</span>
+      </div>
+      <div class="level-card" onclick="startLevel('bass','flat')">
+        <span class="level-clef">♭</span>
+        <span class="level-label">Bass Clef<br>Flats</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <h1 class="page-title" id="game-title">Treble <em>Sharps</em></h1>
+  <p class="page-sub" id="game-sub">Play the note shown</p>
+  <div class="card">
+    <div id="staff-wrap">
+      <div id="staff-svg"></div>
+    </div>
+
+    <div class="status-row">
+      <div class="mic-dot" id="mic-dot"></div>
+      <span id="status-text">Starting…</span>
+    </div>
+    <div class="conf-bar-wrap"><div class="conf-bar" id="conf-bar"></div></div>
+
+    <div id="feedback">&nbsp;</div>
+
+    <div class="progress-panel">
+      <div class="progress-title">Note Progress</div>
+      <div class="note-progress-grid" id="note-pips"></div>
+    </div>
+
+    <button class="btn" onclick="quitGame()">Quit Level</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="screen-results" class="screen">
+  <h1 class="page-title"><em>Well done!</em></h1>
+  <div class="divider"></div>
+  <div class="card">
+    <div class="end-ornament" style="text-align:center">✦</div>
+    <div class="end-title win" id="results-title">Level Complete</div>
+    <div class="end-sub" id="results-sub"></div>
+    <table class="results-table" id="results-table">
+      <thead>
+        <tr><th>Note</th><th>Times Shown</th><th>Avg Time (last 4)</th></tr>
+      </thead>
+      <tbody id="results-body"></tbody>
+    </table>
+    <button class="btn btn-gold" onclick="goHome()">Choose Another Level</button>
+    <button class="btn btn-gap" onclick="retryLevel()">Play Again</button>
+  </div>
+</div>
+
+<script type="module">
+import { PitchDetector } from 'pitchy';
+
+// ─── NOTE POOLS ───────────────────────────────────────────
+const NOTE_POOLS = {
+  treble: {
+    sharp: [
+      { vex:'e#/4', acc:'#', midi:65,  label:'E#4' },
+      { vex:'f#/4', acc:'#', midi:66,  label:'F#4' },
+      { vex:'g#/4', acc:'#', midi:68,  label:'G#4' },
+      { vex:'a#/4', acc:'#', midi:70,  label:'A#4' },
+      { vex:'b#/4', acc:'#', midi:72,  label:'B#4' },
+      { vex:'c#/5', acc:'#', midi:73,  label:'C#5' },
+      { vex:'d#/5', acc:'#', midi:75,  label:'D#5' },
+      { vex:'e#/5', acc:'#', midi:77,  label:'E#5' },
+      { vex:'f#/5', acc:'#', midi:78,  label:'F#5' },
+    ],
+    flat: [
+      { vex:'eb/4', acc:'b', midi:63,  label:'Eb4' },
+      { vex:'fb/4', acc:'b', midi:64,  label:'Fb4' },
+      { vex:'gb/4', acc:'b', midi:66,  label:'Gb4' },
+      { vex:'ab/4', acc:'b', midi:68,  label:'Ab4' },
+      { vex:'bb/4', acc:'b', midi:70,  label:'Bb4' },
+      { vex:'cb/5', acc:'b', midi:71,  label:'Cb5' },
+      { vex:'db/5', acc:'b', midi:73,  label:'Db5' },
+      { vex:'eb/5', acc:'b', midi:75,  label:'Eb5' },
+      { vex:'fb/5', acc:'b', midi:76,  label:'Fb5' },
+    ],
+  },
+  bass: {
+    sharp: [
+      { vex:'g#/2', acc:'#', midi:44,  label:'G#2' },
+      { vex:'a#/2', acc:'#', midi:46,  label:'A#2' },
+      { vex:'b#/2', acc:'#', midi:48,  label:'B#2' },
+      { vex:'c#/3', acc:'#', midi:49,  label:'C#3' },
+      { vex:'d#/3', acc:'#', midi:51,  label:'D#3' },
+      { vex:'e#/3', acc:'#', midi:53,  label:'E#3' },
+      { vex:'f#/3', acc:'#', midi:54,  label:'F#3' },
+      { vex:'g#/3', acc:'#', midi:56,  label:'G#3' },
+      { vex:'a#/3', acc:'#', midi:58,  label:'A#3' },
+    ],
+    flat: [
+      { vex:'gb/2', acc:'b', midi:42,  label:'Gb2' },
+      { vex:'ab/2', acc:'b', midi:44,  label:'Ab2' },
+      { vex:'bb/2', acc:'b', midi:46,  label:'Bb2' },
+      { vex:'cb/3', acc:'b', midi:47,  label:'Cb3' },
+      { vex:'db/3', acc:'b', midi:49,  label:'Db3' },
+      { vex:'eb/3', acc:'b', midi:51,  label:'Eb3' },
+      { vex:'fb/3', acc:'b', midi:52,  label:'Fb3' },
+      { vex:'gb/3', acc:'b', midi:54,  label:'Gb3' },
+      { vex:'ab/3', acc:'b', midi:56,  label:'Ab3' },
+    ],
+  },
+};
+
+// ─── VexFlow ──────────────────────────────────────────────
+const VF = (typeof Vex !== 'undefined' && Vex.Flow) ? Vex.Flow
+         : (typeof VexFlow !== 'undefined' ? VexFlow : null);
+
+function renderNote(noteObj) {
+  const container = document.getElementById('staff-svg');
+  container.innerHTML = '';
+  const wrap = document.getElementById('staff-wrap');
+  const W = Math.min(400, wrap.clientWidth - 16);
+  const H = 148;
+  const renderer = new VF.Renderer(container, VF.Renderer.Backends.SVG);
+  renderer.resize(W, H);
+  const ctx = renderer.getContext();
+  const scale = W / 400;
+  const staveX = Math.round(10 * scale);
+  const staveY = 24;
+  const staveW = W - staveX * 2;
+  const stave = new VF.Stave(staveX, staveY, staveW);
+  stave.addClef(currentClef);
+  stave.setContext(ctx).draw();
+  const sn = new VF.StaveNote({ clef: currentClef, keys: [noteObj.vex], duration: 'q' });
+  sn.addAccidental(0, new VF.Accidental(noteObj.acc));
+  const voice = new VF.Voice({ num_beats: 1, beat_value: 4 });
+  voice.setStrict(false);
+  voice.addTickables([sn]);
+  new VF.Formatter().joinVoices([voice]).format([voice], staveW - Math.round(80 * scale));
+  voice.draw(ctx, stave);
+}
+
+// ─── Pitch detection ──────────────────────────────────────
+function freqToMidi(freq, centsWindow = 80) {
+  const exact   = 12 * Math.log2(freq / 440) + 69;
+  const nearest = Math.round(exact);
+  const cents   = Math.abs(exact - nearest) * 100;
+  return cents <= centsWindow ? nearest : -1;
+}
+
+// ─── State ────────────────────────────────────────────────
+let currentClef = 'treble';
+let currentAcc  = 'sharp';
+let notePool    = [];
+
+// Per-note tracking: { timings: number[], lastFourAvg: number|null, showCount: number }
+let noteStats   = [];
+
+// Which notes have been introduced (indices into notePool)
+let introducedIndices = [];
+// The next note index to introduce (into the original shuffled order)
+let introOrder  = [];
+let introPtr    = 0;
+
+// Current note being shown
+let currentNoteIdx = -1;
+let noteShownAt    = 0;   // Date.now() when current note appeared
+let waitingForCorrect = false;
+
+// Audio
+let listening   = false;
+let audioCtx    = null;
+let analyser    = null;
+let micStream   = null;
+let rafId       = null;
+let detector    = null;
+let inputBuf    = null;
+let cooldown    = false;
+let lastMidi    = -1;
+let stableCount = 0;
+const STABLE_NEEDED     = 6;
+const CLARITY_THRESHOLD = 0.82;
+const MASTERY_THRESHOLD = 1.5;   // seconds
+const MIN_SHOWS         = 4;      // shows before averaging
+
+// Gap between notes
+const NOTE_GAP_MS = 250;
+
+// ─── Screen helpers ───────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+window.goHome = function() {
+  stopAudio();
+  showScreen('screen-home');
+};
+
+window.quitGame = function() {
+  stopAudio();
+  showScreen('screen-home');
+};
+
+window.retryLevel = function() {
+  startLevel(currentClef, currentAcc);
+};
+
+// ─── Pip display ──────────────────────────────────────────
+function buildPips() {
+  const grid = document.getElementById('note-pips');
+  grid.innerHTML = '';
+  notePool.forEach((n, i) => {
+    const pip = document.createElement('div');
+    pip.className = 'note-pip';
+    pip.id = `pip-${i}`;
+    pip.title = n.label;
+    const lbl = document.createElement('div');
+    lbl.className = 'note-pip-label';
+    lbl.textContent = n.label;
+    pip.appendChild(lbl);
+    grid.appendChild(pip);
+  });
+}
+
+function updatePips() {
+  notePool.forEach((_, i) => {
+    const pip = document.getElementById(`pip-${i}`);
+    if (!pip) return;
+    pip.classList.remove('introduced', 'mastered', 'current');
+    if (i === currentNoteIdx) pip.classList.add('current');
+    else if (introducedIndices.includes(i)) {
+      const avg = rollingAvg(i);
+      if (avg !== null && avg <= MASTERY_THRESHOLD) pip.classList.add('mastered');
+      else pip.classList.add('introduced');
+    }
+  });
+}
+
+// ─── Per-note helpers ─────────────────────────────────────
+function rollingAvg(idx) {
+  const t = noteStats[idx].timings;
+  if (t.length < MIN_SHOWS) return null;
+  const last4 = t.slice(-4);
+  return last4.reduce((a, b) => a + b, 0) / 4;
+}
+
+function isMastered(idx) {
+  const avg = rollingAvg(idx);
+  return avg !== null && avg <= MASTERY_THRESHOLD;
+}
+
+function allIntroducedMastered() {
+  return introducedIndices.every(i => isMastered(i));
+}
+
+function allNineMastered() {
+  return notePool.every((_, i) => isMastered(i));
+}
+
+// ─── Note selection logic ─────────────────────────────────
+// Returns the index of the next note to show.
+function pickNextNote() {
+  // Phase: new note needs its first 4 showings
+  if (introPtr < introOrder.length) {
+    const nextNew = introOrder[introPtr];
+    // If current new note hasn't been introduced yet → introduce it
+    if (!introducedIndices.includes(nextNew)) {
+      introducedIndices.push(nextNew);
+    }
+    // If it still needs more solo showings (< 4 correct shows), keep showing it
+    if (noteStats[nextNew].showCount < MIN_SHOWS) {
+      return nextNew;
+    }
+    // It has 4+ showings — has it reached mastery?
+    if (!isMastered(nextNew)) {
+      // Not mastered yet: show it solo still
+      return nextNew;
+    }
+    // Mastered — advance intro pointer and pick from pool
+    introPtr++;
+    // If there are more notes to introduce, start the next one
+    if (introPtr < introOrder.length) {
+      const nxtNew = introOrder[introPtr];
+      introducedIndices.push(nxtNew);
+      return nxtNew;
+    }
+    // All introduced — fall through to weighted pick
+  }
+
+  // All 9 introduced; pick weighted by avg time
+  return weightedPick();
+}
+
+function weightedPick() {
+  // Weight = avg time (slower = more weight). Notes with <4 shows get high weight.
+  // Avoid same note twice in a row if possible.
+  const weights = introducedIndices.map(i => {
+    const avg = rollingAvg(i);
+    return avg === null ? 5.0 : avg;  // un-averaged notes get high weight
+  });
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let k = 0; k < weights.length; k++) {
+    r -= weights[k];
+    if (r <= 0) {
+      const idx = introducedIndices[k];
+      // Avoid same note back-to-back if alternatives exist
+      if (idx === currentNoteIdx && introducedIndices.length > 1) {
+        // Try again once
+        return weightedPick();
+      }
+      return idx;
+    }
+  }
+  return introducedIndices[introducedIndices.length - 1];
+}
+
+// ─── Main start ───────────────────────────────────────────
+window.startLevel = async function(clef, acc) {
+  currentClef = clef;
+  currentAcc  = acc;
+  notePool    = NOTE_POOLS[clef][acc].slice();  // copy
+  noteStats   = notePool.map(() => ({ timings: [], showCount: 0 }));
+  introducedIndices = [];
+  introOrder  = shuffle([...Array(notePool.length).keys()]);
+  introPtr    = 0;
+  currentNoteIdx = -1;
+  cooldown    = false;
+  lastMidi    = -1;
+  stableCount = 0;
+  waitingForCorrect = false;
+
+  const accLabel = acc === 'sharp' ? 'Sharps' : 'Flats';
+  const clefLabel = clef === 'treble' ? 'Treble' : 'Bass';
+  document.getElementById('game-title').innerHTML = `${clefLabel} <em>${accLabel}</em>`;
+  document.getElementById('feedback').innerHTML = '&nbsp;';
+  document.getElementById('feedback').className = '';
+  document.getElementById('staff-wrap').className = 'active' in document.getElementById('staff-wrap') ? '' : '';
+  document.getElementById('staff-wrap').classList.remove('correct','wrong','hidden-note');
+
+  buildPips();
+  showScreen('screen-game');
+  await initAudio();
+  if (!listening) return;
+
+  showNextNote();
+  audioLoop();
+};
+
+// ─── Show a note ──────────────────────────────────────────
+function showNextNote() {
+  if (!listening) return;
+  const idx = pickNextNote();
+  currentNoteIdx = idx;
+  noteShownAt    = Date.now();
+  waitingForCorrect = true;
+  cooldown       = false;
+  lastMidi       = -1;
+  stableCount    = 0;
+
+  const wrap = document.getElementById('staff-wrap');
+  wrap.classList.remove('correct', 'wrong', 'hidden-note');
+  document.getElementById('feedback').innerHTML = '&nbsp;';
+  document.getElementById('feedback').className = '';
+
+  renderNote(notePool[idx]);
+  updatePips();
+
+  document.getElementById('status-text').textContent = 'Listening — play the note shown';
+}
+
+// ─── After correct: hide note briefly, then show next ─────
+function onCorrect() {
+  const elapsed = (Date.now() - noteShownAt) / 1000;
+  const idx = currentNoteIdx;
+  noteStats[idx].timings.push(elapsed);
+  noteStats[idx].showCount++;
+  waitingForCorrect = false;
+
+  flash('Correct!', 'correct');
+  updatePips();
+
+  // Check if game is finished
+  if (introPtr >= introOrder.length && allNineMastered()) {
+    setTimeout(() => endLevel(), 700);
+    return;
+  }
+
+  // Hide note for 250ms then show next
+  setTimeout(() => {
+    const wrap = document.getElementById('staff-wrap');
+    wrap.classList.add('hidden-note');
+    document.getElementById('staff-svg').innerHTML = '';
+    setTimeout(() => {
+      wrap.classList.remove('hidden-note');
+      showNextNote();
+    }, NOTE_GAP_MS);
+  }, 500);
+}
+
+// ─── Wrong note ───────────────────────────────────────────
+function onWrong() {
+  flash('Wrong', 'wrong');
+  // Timer keeps running; cooldown briefly to avoid rapid re-triggers
+  cooldown = true;
+  setTimeout(() => { cooldown = false; lastMidi = -1; stableCount = 0; }, 900);
+}
+
+function flash(text, cls) {
+  const fb = document.getElementById('feedback');
+  fb.textContent = text;
+  fb.className = cls;
+  const wrap = document.getElementById('staff-wrap');
+  wrap.classList.remove('correct','wrong');
+  wrap.classList.add(cls);
+  if (cls === 'correct') {
+    setTimeout(() => wrap.classList.remove('correct'), 500);
+  } else {
+    setTimeout(() => { wrap.classList.remove('wrong'); }, 700);
+  }
+}
+
+// ─── End level ────────────────────────────────────────────
+function endLevel() {
+  stopAudio();
+  const accLabel  = currentAcc === 'sharp' ? 'Sharps' : 'Flats';
+  const clefLabel = currentClef === 'treble' ? 'Treble Clef' : 'Bass Clef';
+  document.getElementById('results-title').textContent = `${clefLabel} ${accLabel} — Complete`;
+  document.getElementById('results-sub').textContent =
+    'All 9 notes mastered. Here are your average response times:';
+
+  const tbody = document.getElementById('results-body');
+  tbody.innerHTML = '';
+  notePool.forEach((n, i) => {
+    const avg = rollingAvg(i);
+    const showCount = noteStats[i].showCount;
+    const tr = document.createElement('tr');
+    const tdNote  = document.createElement('td');
+    const tdShows = document.createElement('td');
+    const tdAvg   = document.createElement('td');
+    tdNote.textContent  = n.label;
+    tdShows.textContent = showCount;
+    if (avg === null) {
+      tdAvg.textContent = '—';
+    } else {
+      tdAvg.textContent = avg.toFixed(2) + 's';
+      tdAvg.classList.add(avg <= 1.0 ? 'time-fast' : avg >= 1.4 ? 'time-slow' : '');
+    }
+    tr.appendChild(tdNote);
+    tr.appendChild(tdShows);
+    tr.appendChild(tdAvg);
+    tbody.appendChild(tr);
+  });
+
+  showScreen('screen-results');
+}
+
+// ─── Audio ────────────────────────────────────────────────
+async function initAudio() {
+  stopAudio();
+  document.getElementById('mic-dot').className = 'mic-dot';
+  document.getElementById('status-text').textContent = 'Requesting microphone…';
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    });
+  } catch(e) {
+    document.getElementById('status-text').textContent = 'Mic access denied — please allow microphone.';
+    document.getElementById('mic-dot').className = 'mic-dot error';
+    return;
+  }
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 4096;
+  analyser.smoothingTimeConstant = 0.0;
+  audioCtx.createMediaStreamSource(micStream).connect(analyser);
+  detector = PitchDetector.forFloat32Array(analyser.fftSize);
+  inputBuf = new Float32Array(detector.inputLength);
+  listening = true;
+  document.getElementById('mic-dot').className = 'mic-dot active';
+  document.getElementById('status-text').textContent = 'Listening — play the note shown';
+}
+
+function stopAudio() {
+  listening = false;
+  cancelAnimationFrame(rafId);
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  if (audioCtx)  { audioCtx.close(); audioCtx = null; }
+  detector = null; inputBuf = null;
+}
+
+function audioLoop() {
+  if (!listening) return;
+  rafId = requestAnimationFrame(audioLoop);
+  analyser.getFloatTimeDomainData(inputBuf);
+  const [pitch, clarity] = detector.findPitch(inputBuf, audioCtx.sampleRate);
+  const confBar = document.getElementById('conf-bar');
+  if (clarity < CLARITY_THRESHOLD || pitch < 20) {
+    confBar.style.width = '0%';
+    if (!cooldown) { lastMidi = -1; stableCount = 0; }
+    return;
+  }
+  const midi = freqToMidi(pitch);
+  if (midi === -1) {
+    confBar.style.width = '0%';
+    if (!cooldown) { lastMidi = -1; stableCount = 0; }
+    return;
+  }
+  const barPct = Math.min(100, ((clarity - CLARITY_THRESHOLD) / (1 - CLARITY_THRESHOLD)) * 100);
+  confBar.style.width = barPct.toFixed(0) + '%';
+  if (midi === lastMidi) stableCount++;
+  else { lastMidi = midi; stableCount = 1; }
+
+  if (stableCount >= STABLE_NEEDED && !cooldown && waitingForCorrect && currentNoteIdx !== -1) {
+    if (midi === notePool[currentNoteIdx].midi) {
+      onCorrect();
+    } else {
+      onWrong();
+    }
+  }
+}
+
+// ─── Utils ────────────────────────────────────────────────
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+window.addEventListener('resize', () => {
+  if (currentNoteIdx !== -1 && listening) renderNote(notePool[currentNoteIdx]);
+});
+</script>
+</body>
+</html>
